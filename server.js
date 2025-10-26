@@ -1,6 +1,5 @@
 // Get the packages we need
 var express = require('express'),
-    router = express.Router(),
     mongoose = require('mongoose'),
     bodyParser = require('body-parser');
 
@@ -13,8 +12,20 @@ var app = express();
 // Use environment defined port or 3000
 var port = process.env.PORT || 3000;
 
-// Connect to a MongoDB --> Uncomment this once you have a connection string!!
-//mongoose.connect(process.env.MONGODB_URI,  { useNewUrlParser: true });
+// Connect to MongoDB if a connection string is provided
+var mongoUri = process.env.MONGODB_URI;
+if (!mongoUri) {
+    console.warn('MONGODB_URI is not set. API routes will fail until a connection string is provided.');
+} else {
+    mongoose.connect(mongoUri, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true
+    }).then(function () {
+        console.log('Connected to MongoDB');
+    }).catch(function (err) {
+        console.error('Failed to connect to MongoDB', err);
+    });
+}
 
 // Allow CORS so that backend and frontend could be put on different servers
 var allowCrossDomain = function (req, res, next) {
@@ -32,7 +43,7 @@ app.use(bodyParser.urlencoded({
 app.use(bodyParser.json());
 
 // Use routes as a module (see index.js)
-require('./routes')(app, router);
+require('./routes')(app);
 
 // Start the server
 app.listen(port);
